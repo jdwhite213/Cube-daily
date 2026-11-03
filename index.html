@@ -15,7 +15,41 @@ function vox(i){return pieces[i].cells.map(c=>c.map((n,j)=>n+pieces[i].pos[j]))}
 function valid(i){let all=new Set();for(let k=0;k<3;k++)for(let v of vox(k)){let key=v.join(',');if(all.has(key))return false;all.add(key)}return members(i).every(k=>vox(k).every(v=>v.every(n=>n>=0&&n<3)))}
 function overlaps(){let all=new Set();for(let k=0;k<3;k++)for(let v of vox(k)){let key=v.join(',');if(all.has(key))return true;all.add(key)}return false}
 function touching(a,b){let set=new Set(vox(b).map(v=>v.join(',')));return vox(a).some(v=>[0,1,2].some(j=>[-1,1].some(d=>{let w=[...v];w[j]+=d;return set.has(w.join(','))})))}
-function join(){if(overlaps())return false;let changed=false;for(let a=0;a<3;a++)for(let b=a+1;b<3;b++)if(links[a]!==links[b]&&touching(a,b)){let from=links[b],to=links[a];links=links.map(v=>v===from?to:v);changed=true}return changed}
+// A connection is valid only if all member pieces have their exact solved
+// relative positions, allowing any of the 24 rigid cube orientations.
+const keyCells=c=>c.map(v=>v.join(',')).sort().join('|');
+const spin=(v,axis)=>{let [x,y,z]=v;return axis===0?[x,-z,y]:axis===1?[z,y,-x]:[-y,x,z]};
+const solutionOrientations=(()=>{
+ let result=[],seen=new Set(),queue=[solution.map(c=>c.map(v=>[...v]))];
+ while(queue.length){
+  let shape=queue.shift(),sig=shape.map(keyCells).join('/');
+  if(seen.has(sig))continue;seen.add(sig);result.push(shape);
+  for(let axis=0;axis<3;axis++)queue.push(shape.map(c=>c.map(v=>spin(v,axis))));
+ }
+ return result;
+})();
+function perfectFit(ids){
+ let actual=ids.map(i=>vox(i)),reference=actual[0][0];
+ for(let oriented of solutionOrientations){
+  let target=oriented[ids[0]],actualSet=new Set(actual[0].map(v=>v.join(',')));
+  for(let candidate of target){
+   let shift=reference.map((n,j)=>n-candidate[j]);
+   if(ids.every((id,index)=>keyCells(actual[index])===keyCells(oriented[id].map(v=>v.map((n,j)=>n+shift[j])))))return true;
+  }
+ }
+ return false;
+}
+function join(){
+ if(overlaps())return false;
+ let changed=false;
+ for(let a=0;a<3;a++)for(let b=a+1;b<3;b++){
+  if(links[a]===links[b]||!touching(a,b))continue;
+  let ids=pieces.map((_,i)=>i).filter(i=>links[i]===links[a]||links[i]===links[b]);
+  if(!perfectFit(ids))continue;
+  let from=links[b],to=links[a];links=links.map(v=>v===from?to:v);changed=true;
+ }
+ return changed;
+}
 // Keep all voxels within a bounded workspace around the target cube.
 const WORK_MIN=-4,WORK_MAX=7;
 function clampGroup(axis,delta){let ids=members(selected),v=ids.flatMap(vox),lo=Math.min(...v.map(c=>c[axis])),hi=Math.max(...v.map(c=>c[axis]));return Math.max(WORK_MIN-lo,Math.min(WORK_MAX-hi,delta))}
@@ -28,7 +62,7 @@ function draw(){ctx.clearRect(0,0,W,H);faces=[];pieces.forEach((p,i)=>{let col=c
 function update(s){if(s)status.textContent=s;document.querySelectorAll('[data-select]').forEach(b=>{let i=+b.dataset.select;b.classList.toggle('active',selected===i);b.textContent=['🟠 Coral','🟢 Teal','🟣 Violet'][i]+(pieces[i].done?' ✓':'')});document.querySelector('#progress').textContent=new Set(links).size+' assemblies · '+(won?'Solved!':'Connect all three');draw()}
 function rotate(c,a){return norm(c.map(([x,y,z])=>a===0?[x,-z,y]:a===1?[z,y,-x]:[-y,x,z]))}
 document.querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>{selected=+b.dataset.select;update(pieces[selected].done?'Already placed':'Selected '+['Coral','Teal','Violet'][selected])});document.querySelectorAll('[data-rotate]').forEach(b=>b.onclick=()=>{rotateGroup(+b.dataset.rotate);let linked=join();update(linked?'Pieces connected! Move or rotate them together.':'Assembly rotated 90°');checkWin()});
-document.querySelector('#place').onclick=()=>{if(overlaps()){update('Separate overlapping pieces first');return}if(join())update('Connected! Move and rotate the assembly together.');else update('Move pieces until their cube faces touch');checkWin()};
+document.querySelector('#place').onclick=()=>{if(overlaps()){update('Separate overlapping pieces first');return}if(join())update('Perfect fit! Move and rotate the assembly together.');else update('Pieces only lock when their relative positions fit the solved cube exactly.');checkWin()};
 document.querySelector('#hint').onclick=()=>{let i=selected,p=pieces[i];if(members(i).length>1){update('Tap Separate before requesting an individual piece hint.');return}p.cells=norm(solution[i]);p.pos=[0,1,2].map(j=>Math.min(...solution[i].map(c=>c[j])));update('Hint: '+['Coral','Teal','Violet'][i]+' moved to its solution position.');draw()};
 document.querySelector('#undo').onclick=()=>{links=[0,1,2];won=false;update('Assemblies separated. You can move pieces individually again.')};document.querySelector('#restart').onclick=reset;
 document.querySelector('#depthMinus').onclick=()=>{let base=pieces.map(p=>[...p.pos]);moveGroup(base,1,-1);update('Moved one step through depth')};
@@ -90,7 +124,7 @@ function end(e){
     else members(selected).forEach(k=>pieces[k].pos=[...gesture.base[k]]);
     status.textContent='Pieces cannot overlap — move reverted';
    }else{
-    let linked=join();if(linked)status.textContent='Pieces connected — now move together';
+    let linked=join();if(linked)status.textContent='Perfect fit! Pieces now move and rotate together';
     checkWin();
    }
   }
