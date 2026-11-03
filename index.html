@@ -3,7 +3,7 @@
 // Three connected pieces: each is a 3x3 slab with a small interlocking exchange.
 const solution=[[],[],[]];for(let x=0;x<3;x++)for(let y=0;y<3;y++)for(let z=0;z<3;z++){let k=x;if(y===1&&z===1){if(x===0)k=1;else if(x===1)k=0}if(y===2&&z===0){if(x===1)k=2;else if(x===2)k=1}solution[k].push([x,y,z])}
 const norm=c=>{let min=[0,1,2].map(j=>Math.min(...c.map(v=>v[j])));return c.map(v=>v.map((n,j)=>n-min[j]))};let pieces,selected,placed,yaw,pitch,faces,gesture,pointers=new Map(),start,won,links;
-function reset(){pieces=solution.map((cells,i)=>({cells:norm(cells),pos:[i===0?-3:i===1?0:4,0,0],done:false}));selected=0;placed=[];links=[0,1,2];yaw=-.78;pitch=.55;gesture=null;pointers.clear();start=Date.now();won=false;update('Tap a colored piece, then drag it.')}
+function reset(){pieces=solution.map((cells,i)=>({cells:norm(cells),pos:[i===0?-4:i===1?0:5,0,0],done:false}));selected=0;placed=[];links=[0,1,2];yaw=-.78;pitch=.55;gesture=null;pointers.clear();start=Date.now();won=false;update('Tap a colored piece, then drag it.')}
 function project(v){let x=v[0]-1.5,y=v[1]-1.5,z=v[2]-1.5,a=x*Math.cos(yaw)-y*Math.sin(yaw),b=x*Math.sin(yaw)+y*Math.cos(yaw);return [W/2+a*scale,H/2-(b*Math.sin(pitch)+z*Math.cos(pitch))*scale,b*Math.cos(pitch)-z*Math.sin(pitch)]}
 function members(i){return pieces.map((_,j)=>j).filter(j=>links[j]===links[i])}
 function vox(i){return pieces[i].cells.map(c=>c.map((n,j)=>n+pieces[i].pos[j]))}
