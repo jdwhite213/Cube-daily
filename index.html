@@ -35,20 +35,28 @@ let angle=Math.atan2(ps[1][1]-ps[0][1],ps[1][0]-ps[0][0]);
 let delta=Math.atan2(Math.sin(angle-gesture.lastAngle),Math.cos(angle-gesture.lastAngle));
 gesture.lastAngle=angle;
 if(gesture.mode==='pending'){
-gesture.turn+=delta;
-if(Math.abs(gesture.turn)>.23){gesture.mode='twist';gesture.turn=0;status.textContent='Twist to rotate selected assembly'}
-else if(Math.abs(cy-gesture.anchor)>19){gesture.mode='depth';status.textContent='Two-finger drag adjusts depth'}
+ gesture.turn+=delta;
+ if(Math.abs(gesture.turn)>.15 && Math.abs(cy-gesture.anchor)<55){
+  gesture.mode='twist';
+  status.textContent='Twist detected';
+ }else if(Math.abs(cy-gesture.anchor)>40 && Math.abs(gesture.turn)<.15){
+  gesture.mode='depth';
+  status.textContent='Depth drag detected';
+ }
+}else if(gesture.mode==='twist'){
+ gesture.turn+=delta;
 }
 if(gesture.mode==='depth')moveGroup(gesture.base,1,Math.round((gesture.anchor-cy)/55));
 if(gesture.mode==='twist'){
-gesture.turn+=delta;
-while(Math.abs(gesture.turn)>=Math.PI/3){
-let clockwise=gesture.turn>0;
-if(clockwise){for(let n=0;n<3;n++)rotateGroup(2)}
-else rotateGroup(2);
-gesture.turn+=clockwise?-Math.PI/3:Math.PI/3;
-status.textContent=clockwise?'Rotated clockwise 90°':'Rotated counterclockwise 90°';
-}
+ // One quarter-turn is triggered after approximately 25 degrees of twisting.
+ // The remaining angular movement is retained, allowing repeated quarter turns.
+ if(Math.abs(gesture.turn)>=Math.PI/7.2){
+  let clockwise=gesture.turn>0;
+  if(clockwise){for(let n=0;n<3;n++)rotateGroup(2)}
+  else rotateGroup(2);
+  gesture.turn+=clockwise?-Math.PI/2:Math.PI/2;
+  status.textContent=clockwise?'Clockwise rotation: 90°':'Counterclockwise rotation: 90°';
+ }
 }
 }draw()});function end(e){pointers.delete(e.pointerId);if(!pointers.size){if(gesture?.type==='piece'||gesture?.type==='two'){if(overlaps()){if(gesture.snapshot){pieces.forEach((p,i)=>{p.cells=gesture.snapshot[i].cells;p.pos=gesture.snapshot[i].pos})}else members(selected).forEach(k=>pieces[k].pos=[...gesture.base[k]]);status.textContent='Pieces cannot overlap'}else{let linked=join();status.textContent=linked?'Connected! These pieces now move and rotate together.':gesture.type==='two'&&gesture.mode==='twist'?'Rotation snapped to 90°':'Snapped to grid';checkWin()}}gesture=null}else{let pt=[...pointers.values()][0];gesture={type:'orbit',anchor:pt,base:[yaw,pitch]}}draw()}canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);setInterval(()=>{if(won)return;let t=Math.floor((Date.now()-start)/1000);document.querySelector('#clock').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')},1000);reset()})();
 </script></body></html>
