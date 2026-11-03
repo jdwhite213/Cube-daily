@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c30"><meta name="apple-mobile-web-app-capable" content="yes"><title>Cube Daily</title><style>*{box-sizing:border-box}html,body{margin:0;background:#111c30;color:#f3f7ff;font:15px system-ui;overscroll-behavior:none}main{max-width:650px;margin:auto;padding:12px}header,.footer{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:23px}.muted{color:#a9b9d0;font-size:12px}canvas{display:block;width:100%;height:min(64dvh,580px);background:radial-gradient(circle,#263c59,#142238);border:1px solid #435775;border-radius:17px;touch-action:none;margin:12px 0}button{min-height:45px;border:1px solid #566b89;border-radius:11px;background:#2a405e;color:white;font-weight:650;padding:8px 4px}button:active{background:#476180}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:9px 0}.active{outline:2px solid #fff}#status{text-align:center;min-height:24px;font-size:13px}.footer button{border:0;background:none;text-decoration:underline}.instructions{line-height:1.5;margin-top:10px}</style></head><body><main><header><div><h1>◇ Cube Daily</h1><div class="muted">Hard sample · Three pieces · 27 cubes</div></div><strong id="clock">00:00</strong></header><canvas id="scene" width="480" height="560" aria-label="Interactive 3D packing puzzle"></canvas><div id="status">Tap a colored piece, then drag it.</div><div class="buttons"><button data-select="0">🟠 Coral</button><button data-select="1">🟢 Teal</button><button data-select="2">🟣 Violet</button></div><div class="buttons"><button data-rotate="0">↻ Rotate X</button><button data-rotate="1">↻ Rotate Y</button><button data-rotate="2">↻ Rotate Z</button></div><div class="buttons"><button id="place">Connect</button><button id="hint">Hint</button><button id="undo">Separate</button></div><div class="footer"><span id="progress" class="muted">3 assemblies</span><button id="restart">Restart</button></div><p class="muted instructions">All three pieces stay visible. Tap any piece to select it. When pieces touch face-to-face, they connect and move or rotate together. Drag empty space to orbit. Twist two fingers to spin a piece continuously; swipe two fingers vertically to tilt it. Release to snap to 90° increments. Two-finger horizontal swipe moves through depth. Tap Separate to unlink pieces.</p></main><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c30"><meta name="apple-mobile-web-app-capable" content="yes"><title>Cube Daily</title><style>*{box-sizing:border-box}html,body{margin:0;background:#111c30;color:#f3f7ff;font:15px system-ui;overscroll-behavior:none}main{max-width:650px;margin:auto;padding:12px}header,.footer{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:23px}.muted{color:#a9b9d0;font-size:12px}canvas{display:block;width:100%;height:min(64dvh,580px);background:radial-gradient(circle,#263c59,#142238);border:1px solid #435775;border-radius:17px;touch-action:none;margin:12px 0}button{min-height:45px;border:1px solid #566b89;border-radius:11px;background:#2a405e;color:white;font-weight:650;padding:8px 4px}button:active{background:#476180}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:9px 0}.active{outline:2px solid #fff}#status{text-align:center;min-height:24px;font-size:13px}.footer button{border:0;background:none;text-decoration:underline}.instructions{line-height:1.5;margin-top:10px}</style></head><body><main><header><div><h1>◇ Cube Daily</h1><div class="muted">Hard sample · Three pieces · 27 cubes</div></div><strong id="clock">00:00</strong></header><canvas id="scene" width="480" height="560" aria-label="Interactive 3D packing puzzle"></canvas><div id="status">Tap a colored piece, then drag it.</div><div class="buttons"><button data-select="0">🟠 Coral</button><button data-select="1">🟢 Teal</button><button data-select="2">🟣 Violet</button></div><div class="buttons"><button data-rotate="0">↻ Rotate X</button><button data-rotate="1">↻ Rotate Y</button><button data-rotate="2">↻ Rotate Z</button></div><div class="buttons"><button id="place">Connect</button><button id="hint">Hint</button><button id="undo">Separate</button></div><div class="buttons"><button id="depthMinus">Depth −</button><button id="depthPlus">Depth +</button><button id="centerPiece">Recenter</button></div><div class="footer"><span id="progress" class="muted">3 assemblies</span><button id="restart">Restart</button></div><p class="muted instructions">All three pieces stay visible. Tap any piece to select it. When pieces touch face-to-face, they connect and move or rotate together. Drag empty space to orbit. Swipe two fingers left/right to rotate horizontally or up/down to tilt. Rotation previews continuously and snaps to 90° on release. Use the Depth − / Depth + buttons to move a piece in or out of the cube. Tap Separate to unlink pieces.</p></main><script>
 (()=>{'use strict';const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d'),status=document.querySelector('#status'),colors=['#f49a6d','#36bfb2','#a98de9'],W=480,H=560,scale=44;const F=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]];
 // Hard sample: three connected, non-planar nine-voxel polycubes.
 // Generated as a partition of a complete 3x3x3 cube, so an exact solution exists.
@@ -16,7 +16,10 @@ function valid(i){let all=new Set();for(let k=0;k<3;k++)for(let v of vox(k)){let
 function overlaps(){let all=new Set();for(let k=0;k<3;k++)for(let v of vox(k)){let key=v.join(',');if(all.has(key))return true;all.add(key)}return false}
 function touching(a,b){let set=new Set(vox(b).map(v=>v.join(',')));return vox(a).some(v=>[0,1,2].some(j=>[-1,1].some(d=>{let w=[...v];w[j]+=d;return set.has(w.join(','))})))}
 function join(){if(overlaps())return false;let changed=false;for(let a=0;a<3;a++)for(let b=a+1;b<3;b++)if(links[a]!==links[b]&&touching(a,b)){let from=links[b],to=links[a];links=links.map(v=>v===from?to:v);changed=true}return changed}
-function moveGroup(base,axis,delta){members(selected).forEach(k=>{pieces[k].pos[axis]=base[k][axis]+delta})}
+// Keep all voxels within a bounded workspace around the target cube.
+const WORK_MIN=-4,WORK_MAX=7;
+function clampGroup(axis,delta){let ids=members(selected),v=ids.flatMap(vox),lo=Math.min(...v.map(c=>c[axis])),hi=Math.max(...v.map(c=>c[axis]));return Math.max(WORK_MIN-lo,Math.min(WORK_MAX-hi,delta))}
+function moveGroup(base,axis,delta){let ids=members(selected),lo=Infinity,hi=-Infinity;for(let k of ids)for(let c of pieces[k].cells){lo=Math.min(lo,c[axis]+base[k][axis]);hi=Math.max(hi,c[axis]+base[k][axis])}delta=Math.max(WORK_MIN-lo,Math.min(WORK_MAX-hi,delta));ids.forEach(k=>{pieces[k].pos[axis]=base[k][axis]+delta})}
 function rotateGroup(axis){let ids=members(selected),points=ids.flatMap(vox),min=[0,1,2].map(j=>Math.min(...points.map(v=>v[j])));let rotated=ids.map(k=>vox(k).map(v=>{let [x,y,z]=v.map((n,j)=>n-min[j]);return axis===0?[x,-z,y]:axis===1?[z,y,-x]:[-y,x,z]}));let rmin=[0,1,2].map(j=>Math.min(...rotated.flat().map(v=>v[j])));ids.forEach((k,j)=>{let world=rotated[j].map(v=>v.map((n,a)=>n-rmin[a]+min[a]));let localMin=[0,1,2].map(a=>Math.min(...world.map(v=>v[a])));pieces[k].pos=localMin;pieces[k].cells=world.map(v=>v.map((n,a)=>n-localMin[a]))})}
 function checkWin(){if(links.every(v=>v===links[0])&&!overlaps()){let v=pieces.flatMap((_,k)=>vox(k)),mins=[0,1,2].map(a=>Math.min(...v.map(p=>p[a]))),maxs=[0,1,2].map(a=>Math.max(...v.map(p=>p[a])));if(mins.every(n=>n===0)&&maxs.every(n=>n===2)){won=true;update('🎉 Cube complete!');return true}}return false}
 function edge(a,b,color,width){let p=project(a),q=project(b);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
@@ -28,6 +31,9 @@ document.querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>{selected=+b
 document.querySelector('#place').onclick=()=>{if(overlaps()){update('Separate overlapping pieces first');return}if(join())update('Connected! Move and rotate the assembly together.');else update('Move pieces until their cube faces touch');checkWin()};
 document.querySelector('#hint').onclick=()=>{let i=selected,p=pieces[i];if(members(i).length>1){update('Tap Separate before requesting an individual piece hint.');return}p.cells=norm(solution[i]);p.pos=[0,1,2].map(j=>Math.min(...solution[i].map(c=>c[j])));update('Hint: '+['Coral','Teal','Violet'][i]+' moved to its solution position.');draw()};
 document.querySelector('#undo').onclick=()=>{links=[0,1,2];won=false;update('Assemblies separated. You can move pieces individually again.')};document.querySelector('#restart').onclick=reset;
+document.querySelector('#depthMinus').onclick=()=>{let base=pieces.map(p=>[...p.pos]);moveGroup(base,1,-1);update('Moved one step through depth')};
+document.querySelector('#depthPlus').onclick=()=>{let base=pieces.map(p=>[...p.pos]);moveGroup(base,1,1);update('Moved one step through depth')};
+document.querySelector('#centerPiece').onclick=()=>{let ids=members(selected),v=ids.flatMap(vox),center=[0,1,2].map(j=>(Math.min(...v.map(c=>c[j]))+Math.max(...v.map(c=>c[j])))/2),base=pieces.map(p=>[...p.pos]);for(let j=0;j<3;j++){let delta=Math.round(1-center[j]);moveGroup(base,j,delta)}update('Selected assembly moved near the center')};
 function point(e){let r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
 function hit(x,y){for(let j=faces.length-1;j>=0;j--){let f=faces[j],inside=false;for(let a=0,b=f.pts.length-1;a<f.pts.length;b=a++){let p=f.pts[a],q=f.pts[b];if((p[1]>y)!==(q[1]>y)&&x<(q[0]-p[0])*(y-p[1])/(q[1]-p[1])+p[0])inside=!inside}if(inside)return f.i}return -1}
 canvas.addEventListener('pointerdown',e=>{
@@ -39,9 +45,9 @@ canvas.addEventListener('pointerdown',e=>{
   else gesture={type:'orbit',anchor:pt,base:[yaw,pitch]};
   update();
  }else if(pointers.size===2){
-  let ps=[...pointers.values()],a=Math.atan2(ps[1][1]-ps[0][1],ps[1][0]-ps[0][0]);
+  let ps=[...pointers.values()];
   let ids=members(selected),cells=ids.flatMap(vox),center=[0,1,2].map(j=>(Math.min(...cells.map(v=>v[j]))+Math.max(...cells.map(v=>v[j]))+1)/2);
-  gesture={type:'two',mode:'pending',anchor:[(ps[0][0]+ps[1][0])/2,(ps[0][1]+ps[1][1])/2],lastAngle:a,angle:0,base:pieces.map(p=>[...p.pos]),snapshot:pieces.map(p=>({cells:p.cells.map(c=>[...c]),pos:[...p.pos]})),ids,center};
+  gesture={type:'two',mode:'pending',anchor:[(ps[0][0]+ps[1][0])/2,(ps[0][1]+ps[1][1])/2],base:pieces.map(p=>[...p.pos]),snapshot:pieces.map(p=>({cells:p.cells.map(c=>[...c]),pos:[...p.pos]})),ids,center};
  }
 });
 canvas.addEventListener('pointermove',e=>{
@@ -55,18 +61,17 @@ canvas.addEventListener('pointermove',e=>{
   if(Math.abs(det)>50){moveGroup(gesture.base,0,Math.round((dx*bb[1]-dy*bb[0])/det));moveGroup(gesture.base,2,Math.round((aa[0]*dy-aa[1]*dx)/det))}
  }else if(gesture.type==='two'&&pointers.size===2){
   let ps=[...pointers.values()],cx=(ps[0][0]+ps[1][0])/2,cy=(ps[0][1]+ps[1][1])/2;
-  let angle=Math.atan2(ps[1][1]-ps[0][1],ps[1][0]-ps[0][0]);
-  let delta=Math.atan2(Math.sin(angle-gesture.lastAngle),Math.cos(angle-gesture.lastAngle));
-  gesture.lastAngle=angle;gesture.angle+=delta;
   let dx=cx-gesture.anchor[0],dy=cy-gesture.anchor[1];
-  if(gesture.mode==='pending'){
-   if(Math.abs(gesture.angle)>.12){gesture.mode='twist';status.textContent='Twisting — release to snap'}
-   else if(Math.abs(dy)>17&&Math.abs(dy)>Math.abs(dx)*1.25){gesture.mode='tilt';status.textContent='Tilting — release to snap'}
-   else if(Math.abs(dx)>22&&Math.abs(dx)>Math.abs(dy)*1.3){gesture.mode='depth';status.textContent='Moving through depth'}
+  if(gesture.mode==='pending'&&Math.hypot(dx,dy)>12){
+   gesture.mode=Math.abs(dx)>Math.abs(dy)?'horizontal':'vertical';
   }
-  if(gesture.mode==='depth'){moveGroup(gesture.base,1,Math.round(dx/55));preview=null}
-  else if(gesture.mode==='twist'){preview={axis:2,angle:gesture.angle,center:gesture.center,ids:gesture.ids};status.textContent='Twist '+Math.round(gesture.angle*180/Math.PI)+'° · release to snap'}
-  else if(gesture.mode==='tilt'){preview={axis:0,angle:dy/75,center:gesture.center,ids:gesture.ids};status.textContent='Tilt '+Math.round(dy/75*180/Math.PI)+'° · release to snap'}
+  if(gesture.mode==='horizontal'){
+   preview={axis:2,angle:dx/75,center:gesture.center,ids:gesture.ids};
+   status.textContent='Horizontal rotation '+Math.round(preview.angle*180/Math.PI)+'° · release to snap';
+  }else if(gesture.mode==='vertical'){
+   preview={axis:0,angle:dy/75,center:gesture.center,ids:gesture.ids};
+   status.textContent='Vertical rotation '+Math.round(preview.angle*180/Math.PI)+'° · release to snap';
+  }
  }
  draw();
 });
