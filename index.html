@@ -59,7 +59,7 @@ function insideWorkspace(){return pieces.every((p,i)=>vox(i).every(v=>v.every(n=
 function moveGroup(base,axis,delta){
  let ids=members(selected),original=pieces.map(p=>[...p.pos]);
  // Begin each drag update at the original pointer-down positions.
- ids.forEach(k=>pieces[k].pos=[...base[k]]);
+ ids.forEach(k=>pieces[k].pos[axis]=base[k][axis]);
  let sign=Math.sign(delta),steps=Math.abs(delta);
  for(let n=0;n<steps;n++){
   ids.forEach(k=>pieces[k].pos[axis]+=sign);
