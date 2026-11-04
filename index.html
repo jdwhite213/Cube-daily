@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c30"><meta name="apple-mobile-web-app-capable" content="yes"><title>Cube Daily</title><style>*{box-sizing:border-box}html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;margin:0;background:#111c30;color:#f3f7ff;font:15px system-ui;overscroll-behavior:none}main{max-width:650px;margin:auto;padding:12px}header,.footer{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:23px}.muted{color:#a9b9d0;font-size:12px}canvas{display:block;width:100%;height:min(64dvh,580px);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:radial-gradient(circle,#263c59,#142238);border:1px solid #435775;border-radius:17px;touch-action:none;-webkit-tap-highlight-color:transparent;margin:12px 0}button{min-height:45px;border:1px solid #566b89;border-radius:11px;background:#2a405e;color:white;font-weight:650;padding:8px 4px}button:active{background:#476180}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:9px 0}.active{outline:2px solid #fff}#status{text-align:center;min-height:24px;font-size:13px}.footer button{border:0;background:none;text-decoration:underline} .instructions{line-height:1.5;margin-top:10px}.win-overlay{position:fixed;inset:0;background:#07101fc9;display:none;align-items:center;justify-content:center;z-index:20;padding:24px}.win-overlay.show{display:flex}.win-panel{width:min(100%,390px);padding:32px 24px;background:#203652;border:1px solid #6f99c8;border-radius:22px;text-align:center;box-shadow:0 18px 70px #0008}.win-panel h2{font-size:32px;margin:8px 0}.win-panel p{color:#c4d6ed;line-height:1.5}.win-panel button{width:100%;margin-top:12px;background:#397eaa;font-size:17px}</style></head><body><main><header><div><h1>◇ Cube Daily</h1><div class="muted">Puzzle 003 · Scrambled · 27 cubes</div></div><strong id="clock">00:00</strong></header><canvas id="scene" width="480" height="560" aria-label="Interactive 3D packing puzzle"></canvas><div id="status">Tap a colored piece, then drag it.</div><div class="buttons" style="grid-template-columns:repeat(2,1fr)"><button id="hint">Hint</button><button id="undo">Separate</button></div><div class="footer"><span id="progress" class="muted">3 assemblies</span><button id="restart">Restart</button></div><p class="muted instructions">Pieces can pass through each other while dragging, but cannot be left overlapping. Drag a piece to move it; drag empty space to orbit. Double-tap a piece and hold the second tap, then drag left/right to spin or up/down to tilt. Pinch two fingers to zoom. Three-finger vertical drag moves the selected piece through depth. Rotations snap to 90° when released. Tap Hint for help or Separate to unlink pieces.</p></main><div id="winOverlay" class="win-overlay" role="dialog" aria-modal="true" aria-labelledby="winTitle"><div class="win-panel"><div style="font-size:52px">🎉</div><h2 id="winTitle">Cube complete!</h2><p id="winDetails">You solved the puzzle.</p><button id="playAgain">Play again</button></div></div><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c30"><meta name="apple-mobile-web-app-capable" content="yes"><title>Cube Daily</title><style>*{box-sizing:border-box}html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;margin:0;background:#111c30;color:#f3f7ff;font:15px system-ui;overscroll-behavior:none}main{max-width:650px;margin:auto;padding:12px}header,.footer{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:23px}.muted{color:#a9b9d0;font-size:12px}canvas{display:block;width:100%;height:min(64dvh,580px);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:radial-gradient(circle,#263c59,#142238);border:1px solid #435775;border-radius:17px;touch-action:none;-webkit-tap-highlight-color:transparent;margin:12px 0}button{min-height:45px;border:1px solid #566b89;border-radius:11px;background:#2a405e;color:white;font-weight:650;padding:8px 4px}button:active{background:#476180}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:9px 0}.active{outline:2px solid #fff}#status{text-align:center;min-height:24px;font-size:13px}.footer button{border:0;background:none;text-decoration:underline} .instructions{line-height:1.5;margin-top:10px}.win-overlay{position:fixed;inset:0;background:#07101fc9;display:none;align-items:center;justify-content:center;z-index:20;padding:24px}.win-overlay.show{display:flex}.win-panel{width:min(100%,390px);padding:32px 24px;background:#203652;border:1px solid #6f99c8;border-radius:22px;text-align:center;box-shadow:0 18px 70px #0008}.win-panel h2{font-size:32px;margin:8px 0}.win-panel p{color:#c4d6ed;line-height:1.5}.win-panel button{width:100%;margin-top:12px;background:#397eaa;font-size:17px}</style></head><body><main><header><div><h1>◇ Cube Daily</h1><div class="muted">Puzzle 003 · Scrambled · 27 cubes</div></div><strong id="clock">00:00</strong></header><canvas id="scene" width="480" height="560" aria-label="Interactive 3D packing puzzle"></canvas><div id="status">Tap a colored piece, then drag it.</div><div class="buttons" style="grid-template-columns:repeat(2,1fr)"><button id="hint">Hint</button><button id="undo">Separate</button></div><div class="footer"><span id="progress" class="muted">3 assemblies</span><button id="restart">Restart</button></div><p class="muted instructions">Near-perfect fits snap together automatically. Pieces can pass through each other while dragging, but cannot be left overlapping. Drag a piece to move it; drag empty space to orbit. Double-tap a piece and hold the second tap, then drag left/right to spin or up/down to tilt. Pinch two fingers to zoom. Three-finger vertical drag moves the selected piece through depth. Rotations snap to 90° when released. Tap Hint for help or Separate to unlink pieces.</p></main><div id="winOverlay" class="win-overlay" role="dialog" aria-modal="true" aria-labelledby="winTitle"><div class="win-panel"><div style="font-size:52px">🎉</div><h2 id="winTitle">Cube complete!</h2><p id="winDetails">You solved the puzzle.</p><button id="playAgain">Play again</button></div></div><script>
 (()=>{'use strict';const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d'),status=document.querySelector('#status'),colors=['#f49a6d','#36bfb2','#a98de9'],W=480,H=560,BASE_SCALE=44;let zoom=1;const F=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]];
 // Hard sample: three connected, non-planar nine-voxel polycubes.
 // Generated as a partition of a complete 3x3x3 cube, so an exact solution exists.
@@ -75,29 +75,39 @@ function rotateGroup(axis){
 }
 // If the final piece is correctly oriented and within one grid step of
 // completing a 3x3x3 cube, magnetically snap it to the exact solution.
-function snapNearWin(){
+// Find a one-cell translation that makes the selected assembly an exact
+// solved-relative fit against another assembly, in any cube orientation.
+function magneticFit(){
  if(won||overlaps())return false;
- const groups=[...new Set(links)];
- if(groups.length!==2)return false;
- const moving=members(selected),stationary=pieces.map((_,i)=>i).filter(i=>!moving.includes(i));
- if(!stationary.length)return false;
- const fixed=stationary.flatMap(vox),movingCells=moving.flatMap(vox);
- const fixedSet=new Set(fixed.map(v=>v.join(',')));
- let candidates=[];
+ const moving=members(selected),other=pieces.map((_,i)=>i).filter(i=>!moving.includes(i));
+ if(!other.length)return false;
+ const original=pieces.map(p=>[...p.pos]),candidates=[];
  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){
   let distance=Math.abs(dx)+Math.abs(dy)+Math.abs(dz);
-  if(distance>1)continue;
-  let moved=movingCells.map(v=>[v[0]+dx,v[1]+dy,v[2]+dz]);
-  if(moved.some(v=>fixedSet.has(v.join(','))))continue;
-  let all=fixed.concat(moved);
-  let min=[0,1,2].map(a=>Math.min(...all.map(v=>v[a]))),max=[0,1,2].map(a=>Math.max(...all.map(v=>v[a])));
-  if(min.every((v,a)=>max[a]-v===2))candidates.push({dx,dy,dz,distance});
+  if(distance!==1)continue;
+  moving.forEach(i=>pieces[i].pos=[original[i][0]+dx,original[i][1]+dy,original[i][2]+dz]);
+  if(!overlaps()&&insideWorkspace()){
+   for(let id of other){
+    if(touching(selected,id)&&perfectFit([...new Set([...moving,...members(id)])])){
+     candidates.push({dx,dy,dz,distance});break;
+    }
+   }
+  }
  }
- candidates.sort((a,b)=>a.distance-b.distance);
- if(!candidates.length)return false;
- let {dx,dy,dz}=candidates[0];
- moving.forEach(i=>{pieces[i].pos[0]+=dx;pieces[i].pos[1]+=dy;pieces[i].pos[2]+=dz});
- return true;
+ pieces.forEach((p,i)=>p.pos=[...original[i]]);
+ if(candidates.length!==1)return false; // Ambiguous proximity should not auto-solve.
+ let c=candidates[0];
+ moving.forEach(i=>{pieces[i].pos[0]+=c.dx;pieces[i].pos[1]+=c.dy;pieces[i].pos[2]+=c.dz});
+ return join();
+}
+function nearFitFeedback(){
+ const moving=members(selected),others=pieces.map((_,i)=>i).filter(i=>!moving.includes(i));
+ if(!others.length)return '';
+ let v=moving.flatMap(vox),other=others.flatMap(vox);
+ let gap=Infinity;
+ for(let p of v)for(let q of other)gap=Math.min(gap,Math.abs(p[0]-q[0])+Math.abs(p[1]-q[1])+Math.abs(p[2]-q[2]));
+ if(gap>3)return '';
+ return gap<=1?'Close, but not a matching fit — try another rotation or depth.':'Almost touching — move the piece a little closer.';
 }
 function checkWin(){
  if(won||overlaps())return false;
@@ -203,8 +213,11 @@ function end(e){
     else members(selected).forEach(k=>pieces[k].pos=[...gesture.base[k]]);
     status.textContent='Overlapping placement — returned to previous position';
    }else{
-    let linked=join();if(linked)status.textContent='Perfect fit! Pieces now move and rotate together';
-    if(!checkWin()&&snapNearWin())checkWin();
+    let linked=join();
+    if(!linked)linked=magneticFit();
+    if(linked)status.textContent='Perfect fit! Pieces snapped together.';
+    else{let feedback=nearFitFeedback();if(feedback)status.textContent=feedback}
+    checkWin();
    }
   }
   gesture=null;preview=null;
