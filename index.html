@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c30"><meta name="apple-mobile-web-app-capable" content="yes"><title>Cube Daily</title><style>*{box-sizing:border-box}html,body{margin:0;background:#111c30;color:#f3f7ff;font:15px system-ui;overscroll-behavior:none}main{max-width:650px;margin:auto;padding:12px}header,.footer{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:23px}.muted{color:#a9b9d0;font-size:12px}canvas{display:block;width:100%;height:min(64dvh,580px);background:radial-gradient(circle,#263c59,#142238);border:1px solid #435775;border-radius:17px;touch-action:none;margin:12px 0}button{min-height:45px;border:1px solid #566b89;border-radius:11px;background:#2a405e;color:white;font-weight:650;padding:8px 4px}button:active{background:#476180}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:9px 0}.active{outline:2px solid #fff}#status{text-align:center;min-height:24px;font-size:13px}.footer button{border:0;background:none;text-decoration:underline}.instructions{line-height:1.5;margin-top:10px}</style></head><body><main><header><div><h1>◇ Cube Daily</h1><div class="muted">Hard sample · Three pieces · 27 cubes</div></div><strong id="clock">00:00</strong></header><canvas id="scene" width="480" height="560" aria-label="Interactive 3D packing puzzle"></canvas><div id="status">Tap a colored piece, then drag it.</div><div class="buttons" style="grid-template-columns:repeat(2,1fr)"><button id="hint">Hint</button><button id="undo">Separate</button></div><div class="footer"><span id="progress" class="muted">3 assemblies</span><button id="restart">Restart</button></div><p class="muted instructions">Drag a piece to move it; drag empty space to orbit. Two-finger swipe left/right rotates horizontally; swipe up/down tilts. Pinch to zoom. Three-finger vertical drag moves the selected piece through depth. Rotations snap to 90° when released. Tap Hint for help or Separate to unlink pieces.</p></main><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c30"><meta name="apple-mobile-web-app-capable" content="yes"><title>Cube Daily</title><style>*{box-sizing:border-box}html,body{margin:0;background:#111c30;color:#f3f7ff;font:15px system-ui;overscroll-behavior:none}main{max-width:650px;margin:auto;padding:12px}header,.footer{display:flex;justify-content:space-between;align-items:center}h1{margin:0;font-size:23px}.muted{color:#a9b9d0;font-size:12px}canvas{display:block;width:100%;height:min(64dvh,580px);background:radial-gradient(circle,#263c59,#142238);border:1px solid #435775;border-radius:17px;touch-action:none;margin:12px 0}button{min-height:45px;border:1px solid #566b89;border-radius:11px;background:#2a405e;color:white;font-weight:650;padding:8px 4px}button:active{background:#476180}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:9px 0}.active{outline:2px solid #fff}#status{text-align:center;min-height:24px;font-size:13px}.footer button{border:0;background:none;text-decoration:underline}.instructions{line-height:1.5;margin-top:10px}</style></head><body><main><header><div><h1>◇ Cube Daily</h1><div class="muted">Hard sample · Three pieces · 27 cubes</div></div><strong id="clock">00:00</strong></header><canvas id="scene" width="480" height="560" aria-label="Interactive 3D packing puzzle"></canvas><div id="status">Tap a colored piece, then drag it.</div><div class="buttons" style="grid-template-columns:repeat(2,1fr)"><button id="hint">Hint</button><button id="undo">Separate</button></div><div class="footer"><span id="progress" class="muted">3 assemblies</span><button id="restart">Restart</button></div><p class="muted instructions">Drag a piece to move it; drag empty space to orbit. Double-tap a piece and hold the second tap, then drag left/right to spin or up/down to tilt. Pinch two fingers to zoom. Three-finger vertical drag moves the selected piece through depth. Rotations snap to 90° when released. Tap Hint for help or Separate to unlink pieces.</p></main><script>
 (()=>{'use strict';const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d'),status=document.querySelector('#status'),colors=['#f49a6d','#36bfb2','#a98de9'],W=480,H=560,BASE_SCALE=44;let zoom=1;const F=[[0,1,2,3],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]];
 // Hard sample: three connected, non-planar nine-voxel polycubes.
 // Generated as a partition of a complete 3x3x3 cube, so an exact solution exists.
@@ -7,8 +7,8 @@ const solution=[[[0,0,0],[0,0,1],[0,2,1],[1,0,1],[1,0,2],[1,1,1],[1,2,0],[1,2,1]
 function connected(cells){let keys=new Set(cells.map(v=>v.join(','))),seen=new Set(),stack=[cells[0]];while(stack.length){let v=stack.pop(),key=v.join(',');if(seen.has(key))continue;seen.add(key);for(let a=0;a<3;a++)for(let d of [-1,1]){let w=[...v];w[a]+=d;if(keys.has(w.join(','))&&!seen.has(w.join(',')))stack.push(w)}}return seen.size===cells.length}
 const allCells=solution.flat().map(v=>v.join(','));
 if(solution.some(c=>c.length!==9||!connected(c))||new Set(allCells).size!==27||allCells.some(k=>k.split(',').some(n=>+n<0||+n>2)))throw Error('Invalid puzzle geometry');
-const norm=c=>{let min=[0,1,2].map(j=>Math.min(...c.map(v=>v[j])));return c.map(v=>v.map((n,j)=>n-min[j]))};let pieces,selected,placed,yaw,pitch,faces,gesture,pointers=new Map(),start,won,links,preview=null;
-function reset(){pieces=solution.map((cells,i)=>({cells:norm(cells),pos:[i===0?-4:i===1?0:4,0,0],done:false}));selected=0;placed=[];links=[0,1,2];zoom=1;yaw=-.78;pitch=.55;gesture=null;preview=null;pointers.clear();start=Date.now();won=false;update('Hard sample: assemble three irregular pieces into a cube.')}
+const norm=c=>{let min=[0,1,2].map(j=>Math.min(...c.map(v=>v[j])));return c.map(v=>v.map((n,j)=>n-min[j]))};let pieces,selected,placed,yaw,pitch,faces,gesture,pointers=new Map(),start,won,links,preview=null,lastTap=null;
+function reset(){pieces=solution.map((cells,i)=>({cells:norm(cells),pos:[i===0?-4:i===1?0:4,0,0],done:false}));selected=0;placed=[];links=[0,1,2];zoom=1;yaw=-.78;pitch=.55;gesture=null;preview=null;lastTap=null;pointers.clear();start=Date.now();won=false;update('Hard sample: assemble three irregular pieces into a cube.')}
 function project(v){let x=v[0]-1.5,y=v[1]-1.5,z=v[2]-1.5,a=x*Math.cos(yaw)-y*Math.sin(yaw),b=x*Math.sin(yaw)+y*Math.cos(yaw);return [W/2+a*BASE_SCALE*zoom,H/2-(b*Math.sin(pitch)+z*Math.cos(pitch))*BASE_SCALE*zoom,b*Math.cos(pitch)-z*Math.sin(pitch)]}
 function members(i){return pieces.map((_,j)=>j).filter(j=>links[j]===links[i])}
 function vox(i){return pieces[i].cells.map(c=>c.map((n,j)=>n+pieces[i].pos[j]))}
@@ -70,14 +70,20 @@ canvas.addEventListener('pointerdown',e=>{
  let pt=point(e);pointers.set(e.pointerId,pt);
  if(pointers.size===1){
   let i=hit(...pt);
-  if(i>=0){selected=i;gesture={type:'piece',anchor:pt,base:pieces.map(p=>[...p.pos])}}
+  if(i>=0){selected=i;
+   let isDouble=lastTap&&lastTap.i===i&&performance.now()-lastTap.time<370&&Math.hypot(pt[0]-lastTap.pt[0],pt[1]-lastTap.pt[1])<36;
+   if(isDouble){let ids=members(i),cells=ids.flatMap(vox),center=[0,1,2].map(j=>(Math.min(...cells.map(v=>v[j]))+Math.max(...cells.map(v=>v[j]))+1)/2);
+    gesture={type:'rotateHold',mode:'pending',anchor:pt,ids,center,snapshot:pieces.map(p=>({cells:p.cells.map(c=>[...c]),pos:[...p.pos]}))};
+    status.textContent='Rotate mode: drag left/right or up/down';lastTap=null;
+   }else{gesture={type:'piece',anchor:pt,base:pieces.map(p=>[...p.pos]),tapStart:performance.now(),tapPiece:i,moved:false};lastTap=null}
+  }
   else gesture={type:'orbit',anchor:pt,base:[yaw,pitch]};
   update();
  }else if(pointers.size===2){
   let ps=[...pointers.values()];
   let distance=Math.hypot(ps[0][0]-ps[1][0],ps[0][1]-ps[1][1]);
   let ids=members(selected),cells=ids.flatMap(vox),center=[0,1,2].map(j=>(Math.min(...cells.map(v=>v[j]))+Math.max(...cells.map(v=>v[j]))+1)/2);
-  gesture={type:'two',mode:'pending',distance,initialZoom:zoom,anchor:[(ps[0][0]+ps[1][0])/2,(ps[0][1]+ps[1][1])/2],base:pieces.map(p=>[...p.pos]),snapshot:pieces.map(p=>({cells:p.cells.map(c=>[...c]),pos:[...p.pos]})),ids,center};
+  gesture={type:'two',mode:'pinch',distance,initialZoom:zoom,anchor:[(ps[0][0]+ps[1][0])/2,(ps[0][1]+ps[1][1])/2],base:pieces.map(p=>[...p.pos]),snapshot:pieces.map(p=>({cells:p.cells.map(c=>[...c]),pos:[...p.pos]})),ids,center};preview=null;lastTap=null;
  }else if(pointers.size===3){let ps=[...pointers.values()];gesture={type:'three',anchor:ps.reduce((n,p)=>n+p[1],0)/3,base:pieces.map(p=>[...p.pos])};preview=null;
  }
 });
@@ -88,39 +94,35 @@ canvas.addEventListener('pointermove',e=>{
   yaw=gesture.base[0]+(pt[0]-gesture.anchor[0])*.009;
   pitch=Math.max(-1.2,Math.min(1.2,gesture.base[1]+(pt[1]-gesture.anchor[1])*.008));
  }else if(gesture.type==='piece'){
+  if(Math.hypot(pt[0]-gesture.anchor[0],pt[1]-gesture.anchor[1])>9)gesture.moved=true;
   let dx=pt[0]-gesture.anchor[0],dy=pt[1]-gesture.anchor[1],o=project([0,0,0]),ex=project([1,0,0]),ez=project([0,0,1]),aa=[ex[0]-o[0],ex[1]-o[1]],bb=[ez[0]-o[0],ez[1]-o[1]],det=aa[0]*bb[1]-aa[1]*bb[0];
   if(Math.abs(det)>50){moveGroup(gesture.base,0,Math.round((dx*bb[1]-dy*bb[0])/det));moveGroup(gesture.base,2,Math.round((aa[0]*dy-aa[1]*dx)/det))}
  }else if(gesture.type==='three'&&pointers.size===3){let ps=[...pointers.values()],cy=ps.reduce((n,p)=>n+p[1],0)/3;moveGroup(gesture.base,1,Math.round((gesture.anchor-cy)/55));status.textContent='Moving through depth';
+ }else if(gesture.type==='rotateHold'){
+  let dx=pt[0]-gesture.anchor[0],dy=pt[1]-gesture.anchor[1];
+  if(gesture.mode==='pending'&&Math.hypot(dx,dy)>8)gesture.mode=Math.abs(dx)>=Math.abs(dy)?'horizontal':'vertical';
+  if(gesture.mode==='horizontal'){preview={axis:2,angle:dx/75,center:gesture.center,ids:gesture.ids};status.textContent='Spin '+Math.round(preview.angle*180/Math.PI)+'° · release to snap'}
+  else if(gesture.mode==='vertical'){preview={axis:0,angle:dy/75,center:gesture.center,ids:gesture.ids};status.textContent='Tilt '+Math.round(preview.angle*180/Math.PI)+'° · release to snap'}
  }else if(gesture.type==='two'&&pointers.size===2){
-  let ps=[...pointers.values()],cx=(ps[0][0]+ps[1][0])/2,cy=(ps[0][1]+ps[1][1])/2;
-  let dx=cx-gesture.anchor[0],dy=cy-gesture.anchor[1];
-  let distance=Math.hypot(ps[0][0]-ps[1][0],ps[0][1]-ps[1][1]);
-  let ratio=distance/Math.max(1,gesture.distance);
-  if(gesture.mode==='pending'&&Math.abs(Math.log(ratio))>.09)gesture.mode='pinch';
-  if(gesture.mode==='pinch'){zoom=Math.max(.5,Math.min(2.5,gesture.initialZoom*ratio));preview=null;status.textContent='Zoom '+Math.round(zoom*100)+'%'}
-  if(gesture.mode==='pending'&&Math.hypot(dx,dy)>12){
-   gesture.mode=Math.abs(dx)>Math.abs(dy)?'horizontal':'vertical';
-  }
-  if(gesture.mode==='horizontal'){
-   preview={axis:2,angle:dx/75,center:gesture.center,ids:gesture.ids};
-   status.textContent='Horizontal rotation '+Math.round(preview.angle*180/Math.PI)+'° · release to snap';
-  }else if(gesture.mode==='vertical'){
-   preview={axis:0,angle:dy/75,center:gesture.center,ids:gesture.ids};
-   status.textContent='Vertical rotation '+Math.round(preview.angle*180/Math.PI)+'° · release to snap';
-  }
+  let ps=[...pointers.values()],distance=Math.hypot(ps[0][0]-ps[1][0],ps[0][1]-ps[1][1]);
+  zoom=Math.max(.5,Math.min(2.5,gesture.initialZoom*distance/Math.max(1,gesture.distance)));
+  status.textContent='Zoom '+Math.round(zoom*100)+'%';preview=null;
  }
  draw();
 });
 function end(e){
  pointers.delete(e.pointerId);
  if(!pointers.size){
-  if(gesture?.type==='two'&&preview){
+  if(gesture?.type==='rotateHold'&&preview){
    let turns=Math.round(preview.angle/(Math.PI/2)),axis=preview.axis;
    preview=null;
    for(let n=0;n<((turns%4)+4)%4;n++)rotateGroup(axis);
    status.textContent='Snapped to '+(turns*90)+'°';
   }
-  if(gesture?.type==='piece'||gesture?.type==='two'||gesture?.type==='three'){
+  if(gesture?.type==='piece'&&!gesture.moved&&performance.now()-gesture.tapStart<300){
+    lastTap={i:gesture.tapPiece,pt:gesture.anchor,time:performance.now()};
+   }
+  if(gesture?.type==='piece'||gesture?.type==='rotateHold'||gesture?.type==='two'||gesture?.type==='three'){
    if(overlaps()){
     if(gesture.snapshot)pieces.forEach((p,i)=>{p.cells=gesture.snapshot[i].cells;p.pos=gesture.snapshot[i].pos});
     else members(selected).forEach(k=>pieces[k].pos=[...gesture.base[k]]);
