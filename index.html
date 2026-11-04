@@ -73,6 +73,32 @@ function rotateGroup(axis){
  if(!insideWorkspace()){restore(before);return false}
  return true;
 }
+// If the final piece is correctly oriented and within one grid step of
+// completing a 3x3x3 cube, magnetically snap it to the exact solution.
+function snapNearWin(){
+ if(won||overlaps())return false;
+ const groups=[...new Set(links)];
+ if(groups.length!==2)return false;
+ const moving=members(selected),stationary=pieces.map((_,i)=>i).filter(i=>!moving.includes(i));
+ if(!stationary.length)return false;
+ const fixed=stationary.flatMap(vox),movingCells=moving.flatMap(vox);
+ const fixedSet=new Set(fixed.map(v=>v.join(',')));
+ let candidates=[];
+ for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){
+  let distance=Math.abs(dx)+Math.abs(dy)+Math.abs(dz);
+  if(distance>1)continue;
+  let moved=movingCells.map(v=>[v[0]+dx,v[1]+dy,v[2]+dz]);
+  if(moved.some(v=>fixedSet.has(v.join(','))))continue;
+  let all=fixed.concat(moved);
+  let min=[0,1,2].map(a=>Math.min(...all.map(v=>v[a]))),max=[0,1,2].map(a=>Math.max(...all.map(v=>v[a])));
+  if(min.every((v,a)=>max[a]-v===2))candidates.push({dx,dy,dz,distance});
+ }
+ candidates.sort((a,b)=>a.distance-b.distance);
+ if(!candidates.length)return false;
+ let {dx,dy,dz}=candidates[0];
+ moving.forEach(i=>{pieces[i].pos[0]+=dx;pieces[i].pos[1]+=dy;pieces[i].pos[2]+=dz});
+ return true;
+}
 function checkWin(){
  if(won||overlaps())return false;
  let v=pieces.flatMap((_,k)=>vox(k));
@@ -178,7 +204,7 @@ function end(e){
     status.textContent='Overlapping placement — returned to previous position';
    }else{
     let linked=join();if(linked)status.textContent='Perfect fit! Pieces now move and rotate together';
-    checkWin();
+    if(!checkWin()&&snapNearWin())checkWin();
    }
   }
   gesture=null;preview=null;
