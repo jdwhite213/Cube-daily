@@ -65,6 +65,14 @@ document.querySelector('#hint').onclick=()=>{let i=selected,p=pieces[i];if(membe
 document.querySelector('#undo').onclick=()=>{links=[0,1,2];won=false;update('Assemblies separated. You can move pieces individually again.')};document.querySelector('#restart').onclick=reset;
 function point(e){let r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
 function hit(x,y){for(let j=faces.length-1;j>=0;j--){let f=faces[j],inside=false;for(let a=0,b=f.pts.length-1;a<f.pts.length;b=a++){let p=f.pts[a],q=f.pts[b];if((p[1]>y)!==(q[1]>y)&&x<(q[0]-p[0])*(y-p[1])/(q[1]-p[1])+p[0])inside=!inside}if(inside)return f.i}return -1}
+// Prevent iOS Safari's native long-press magnifier on the interactive canvas.
+// Pointer events continue to drive the game; touch events are canceled only
+// on the canvas, so page buttons and links remain usable.
+for(const eventName of ['touchstart','touchmove','touchend']){
+ canvas.addEventListener(eventName,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
+}
+canvas.style.webkitTouchCallout='none';
+canvas.style.webkitUserSelect='none';
 // Suppress iOS Safari text selection and double-tap browser gestures.
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('selectstart',e=>e.preventDefault());
